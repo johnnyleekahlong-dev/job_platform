@@ -70,11 +70,36 @@ export default async function JobListings({
   jobTypes: string[];
   location: string;
 }) {
-  const {
-    jobs,
-    totalPages,
-    currentPage: page,
-  } = await getJobs(currentPage, 7, jobTypes, location);
+  // const {
+  //   jobs,
+  //   totalPages,
+  //   currentPage: page,
+  // } = await getJobs(currentPage, 7, jobTypes, location);
+
+  const jobs = await prisma.jobPost.findMany({
+    select: {
+      jobTitle: true,
+      id: true,
+      salaryFrom: true,
+      salaryTo: true,
+      employmentType: true,
+      location: true,
+      createdAt: true,
+      company: {
+        select: {
+          name: true,
+          logo: true,
+          location: true,
+          about: true,
+        },
+      },
+    },
+  });
+
+  console.log({ jobs });
+
+  const totalPages = 10;
+  const page = 1;
 
   return (
     <>

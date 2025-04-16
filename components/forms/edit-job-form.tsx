@@ -1,7 +1,7 @@
 "use client";
 
 import { countryList } from "@/utils/countriesList";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -9,8 +9,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,16 +19,13 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { XIcon } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { toast } from "sonner";
-import {
-  UploadDropzone,
-  useUploadThing,
-} from "@/components/uploadthing-export";
+import { UploadDropzone } from "@/components/uploadthing-export";
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -37,44 +34,48 @@ import { jobSchema } from "@/utils/zodSchemas";
 import { SalaryRangeSelector } from "@/components/salary-range-selector";
 import JobDescriptionEditor from "@/components/job-description-editor";
 import BenefitsSelector from "@/components/benefits-selector";
-import { JobListingDurationSelector } from "@/components/job-listing-duration-selector";
-import { createJob } from "@/actions";
+import { updateJobPost } from "@/actions";
 
-interface CreateJobFormProps {
-  companyName: string;
-  companyLocation: string;
-  companyAbout: string;
-  companyLogo: string;
-  companyXAccount: string | null;
-  companyWebsite: string;
+interface iAppProps {
+  jobPost: {
+    jobTitle: string;
+    id: string;
+    employmentType: string;
+    location: string;
+    salaryFrom: number;
+    salaryTo: number;
+    jobDescription: string;
+    benefits: string[];
+    listingDuration: number;
+    company: {
+      location: string;
+      name: string;
+      logo: string;
+      website: string;
+      xAccount: string | null;
+      about: string;
+    };
+  };
 }
 
-export function CreateJobForm({
-  companyAbout,
-  companyLocation,
-  companyLogo,
-  companyXAccount,
-  companyName,
-  companyWebsite,
-}: CreateJobFormProps) {
-  const { startUpload } = useUploadThing("imageUploader");
+export function EditJobForm({ jobPost }: iAppProps) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
-      benefits: [],
-      companyDescription: companyAbout,
-      companyLocation: companyLocation,
-      companyName: companyName,
-      companyWebsite: companyWebsite,
-      companyXAccount: companyXAccount || "",
-      employmentType: "",
-      jobDescription: "",
-      jobTitle: "",
-      location: "",
-      salaryFrom: 0,
-      salaryTo: 0,
-      companyLogo: companyLogo,
-      listingDuration: 30,
+      benefits: jobPost.benefits,
+      companyDescription: jobPost.company.about,
+      companyLocation: jobPost.company.location,
+      companyName: jobPost.company.name,
+      companyWebsite: jobPost.company.website,
+      companyXAccount: jobPost.company.xAccount || "",
+      employmentType: jobPost.employmentType,
+      jobDescription: jobPost.jobDescription,
+      jobTitle: jobPost.jobTitle,
+      location: jobPost.location,
+      salaryFrom: jobPost.salaryFrom,
+      salaryTo: jobPost.salaryTo,
+      companyLogo: jobPost.company.logo,
+      listingDuration: jobPost.listingDuration,
     },
   });
 
@@ -83,9 +84,11 @@ export function CreateJobForm({
     try {
       setPending(true);
 
-      await createJob(values);
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+      await updateJobPost(values, jobPost.id);
+    } catch (error) {
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        toast.error("Something went wrong. Please try again.");
+      }
     } finally {
       setPending(false);
     }
@@ -410,25 +413,6 @@ export function CreateJobForm({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Job Listing Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FormField
-              control={form.control}
-              name="listingDuration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <JobListingDurationSelector field={field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Submitting..." : "Continue"}
         </Button>

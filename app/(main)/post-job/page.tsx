@@ -10,9 +10,9 @@ import React from "react";
 import ArcJetLogo from "@/public/arcjet.jpg";
 import InngestLogo from "@/public/inngest-locale.png";
 import Image from "next/image";
-// import { CreateJobForm } from "@/components/forms/CreateJobForm";
+import { CreateJobForm } from "@/components/forms/create-job-form";
 import { prisma } from "@/utils/db";
-// import { requireUser } from "@/app/utils/hooks";
+import { requireUser } from "@/utils/hooks";
 import { redirect } from "next/navigation";
 
 const companies = [
@@ -74,18 +74,18 @@ async function getCompany(userId: string) {
 }
 
 const PostJobPage = async () => {
-  //   const session = await requireUser();
-  //   const data = await getCompany(session.id as string);
+  const session = await requireUser();
+  const data = await getCompany(session.id as string);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-      {/* <CreateJobForm
+      <CreateJobForm
         companyAbout={data.about}
         companyLocation={data.location}
         companyLogo={data.logo}
         companyName={data.name}
         companyXAccount={data.xAccount}
         companyWebsite={data.website}
-      /> */}
+      />
 
       <div className="col-span-1">
         <Card className="lg:sticky lg:top-4">
